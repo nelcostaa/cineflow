@@ -1,0 +1,4 @@
+.env
+CineFlowAPI/.env
+CineFlowAPI/obj/
+CineFlowAPI/bin/
