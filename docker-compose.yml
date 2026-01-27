@@ -1,0 +1,28 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: cineflow-db
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+
+  api:
+    build:
+      context: ./src/CineFlow
+      dockerfile: Dockerfile
+    container_name: cineflow-api
+    environment:
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__Default=Server=db;Database=${MSSQL_DB};User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True
+      - Tmdb__Token=${TMDB_TOKEN}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+volumes:
+  mssql_data:
