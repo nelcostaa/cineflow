@@ -4,7 +4,7 @@ services:
     container_name: cineflow-db
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD:-YourStrong@Password123}
     ports:
       - "1433:1433"
     volumes:
@@ -16,11 +16,13 @@ services:
       dockerfile: Dockerfile
     container_name: cineflow-api
     environment:
-      - ConnectionStrings__Default=Server=db;Database=${MSSQL_DB};User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True
-      - Tmdb__Token=${TMDB_TOKEN}
+      - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
-    expose:
-      - "8080"
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
+      - ConnectionStrings__DefaultConnection=Server=db;Database=CineFlowDB;User Id=sa;Password=${MSSQL_SA_PASSWORD:-YourStrong@Password123};TrustServerCertificate=True
+      - Tmdb__Token=${TMDB_TOKEN}
+    ports:
+      - "8080:8080"
     depends_on:
       - db
 
