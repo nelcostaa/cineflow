@@ -1,4 +1,6 @@
 .env
 CineFlowAPI/.env
-CineFlowAPI/obj/
-CineFlowAPI/bin/
+CineFlowAPI/obj/**
+CineFlowAPI/bin/**
+.DS_Store
+.vscode/
