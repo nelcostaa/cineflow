@@ -5,3 +5,7 @@ CineFlowAPI/bin/*
 .vscode/
 CineFlowAPI/bin/Debug/
 .DS_Store
+.idea/dataSources.xml
+.idea/cineflow.iml
+.idea/modules.xml
+/.idea

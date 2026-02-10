@@ -1,7 +1,12 @@
+using Microsoft.EntityFrameworkCore;
+using Cineflow.Data;
+using Cineflow.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Controllers (MVC)
 builder.Services.AddControllers();
+// builder.Services.AddScoped<TmdbService>();
 
 // Swagger / OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -18,29 +23,39 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
+
+
+
+
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
+
 
 app.UseHttpsRedirection();
 
 app.UseCors("default");
 
-// Swagger (eu recomendo deixar em Dev só)
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// if (app.Environment.IsDevelopment())
+// {
+//     app.UseSwagger();
+//     app.UseSwaggerUI();
+// }
 
-// Se você quiser Swagger sempre (mesmo em container Production), use:
-// app.UseSwagger();
-// app.UseSwaggerUI();
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseAuthorization();
 
-// Rotas dos controllers
 app.MapControllers();
 
-// (Opcional) rota básica pra testar
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.Run();
