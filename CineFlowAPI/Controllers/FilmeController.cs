@@ -12,11 +12,13 @@ public class FilmesController : ControllerBase
 {
     private readonly AppDbContext _db;
     private readonly IFilmeService _filmeService;
+    private readonly ITmdbService _tmdbService;
 
-    public FilmesController(AppDbContext db, IFilmeService filmeService)
+    public FilmesController(AppDbContext db, IFilmeService filmeService, ITmdbService tmdbService)
     {
         _db = db;
         _filmeService = filmeService;
+        _tmdbService = tmdbService;
     }
 
     //GET /api/filmes
@@ -102,6 +104,66 @@ public class FilmesController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, new { message = "Erro ao deletar filme.", error = ex.Message });
+        }
+    }
+
+    //POST /api/filmes/importar-now-playing
+    [HttpPost("importar-now-playing")]
+    public async Task<IActionResult> ImportarNowPlaying([FromQuery] int quantidadePaginas = 1)
+    {
+        try
+        {
+            var filmesImportados = new List<Filme>();
+            var generos = await _tmdbService.GetGenresMapAsync();
+
+            for (int page = 1; page <= quantidadePaginas; page++)
+            {
+                var response = await _tmdbService.GetNowPlayingAsync(page);
+                if (response == null || response.Results == null) continue;
+
+                foreach (var tmdbFilme in response.Results)
+                {
+                    // Verifica se já existe
+                    var existente = await _filmeService.GetByTmdbIdAsync(tmdbFilme.Id);
+                    if (existente != null) continue;
+
+                    var generosNomes = tmdbFilme.GenreIds?
+                        .Where(id => generos.ContainsKey(id))
+                        .Select(id => generos[id])
+                        .ToList() ?? new List<string>();
+
+                    var filme = new Filme
+                    {
+                        IdTMDB = tmdbFilme.Id,
+                        Titulo = tmdbFilme.Title ?? "Sem título",
+                        TituloOriginal = tmdbFilme.OriginalTitle,
+                        IdiomaOriginal = tmdbFilme.OriginalLanguage,
+                        DataLancamento = tmdbFilme.ReleaseDate,
+                        Sinopse = tmdbFilme.Overview,
+                        Genero = string.Join(", ", generosNomes),
+                        PosterPath = tmdbFilme.PosterPath,
+                        BackdropPath = tmdbFilme.BackdropPath,
+                        VoteAverage = tmdbFilme.VoteAverage,
+                        VoteCount = tmdbFilme.VoteCount,
+                        Popularity = tmdbFilme.Popularity,
+                        Adult = tmdbFilme.Adult,
+                        Video = tmdbFilme.Video
+                    };
+
+                    var novoFilme = await _filmeService.CreateAsync(filme);
+                    filmesImportados.Add(novoFilme);
+                }
+            }
+
+            return Ok(new
+            {
+                message = $"{filmesImportados.Count} filmes importados com sucesso.",
+                filmes = filmesImportados
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Erro ao importar filmes.", error = ex.Message });
         }
     }
 }
