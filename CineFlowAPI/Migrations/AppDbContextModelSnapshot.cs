@@ -34,10 +34,13 @@ namespace Cineflow.Migrations
                         .HasColumnType("bit");
 
                     b.Property<DateTime>("AtualizadoEm")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("BackdropPath")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
 
                     b.Property<DateTime?>("DataLancamento")
                         .HasColumnType("datetime2");
@@ -46,7 +49,6 @@ namespace Cineflow.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Genero")
-                        .IsRequired()
                         .HasMaxLength(80)
                         .HasColumnType("nvarchar(80)");
 
@@ -54,14 +56,16 @@ namespace Cineflow.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("IdiomaOriginal")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<decimal?>("Popularity")
                         .HasPrecision(10, 3)
                         .HasColumnType("decimal(10,3)");
 
                     b.Property<string>("PosterPath")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
 
                     b.Property<string>("Sinopse")
                         .HasColumnType("nvarchar(max)");
@@ -72,7 +76,8 @@ namespace Cineflow.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("TituloOriginal")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<bool>("Video")
                         .HasColumnType("bit");
@@ -101,7 +106,9 @@ namespace Cineflow.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("DataCompra")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("LugarMarcado")
                         .IsRequired()
@@ -128,9 +135,6 @@ namespace Cineflow.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("CapacidadeTotal")
-                        .HasColumnType("int");
-
-                    b.Property<int>("LotacaoAtual")
                         .HasColumnType("int");
 
                     b.Property<string>("Nome")
@@ -167,7 +171,7 @@ namespace Cineflow.Migrations
 
                     b.HasIndex("FilmeId");
 
-                    b.HasIndex("SalaId", "HorarioInicio");
+                    b.HasIndex("SalaId", "HorarioInicio", "HorarioFim");
 
                     b.ToTable("Sessoes");
                 });

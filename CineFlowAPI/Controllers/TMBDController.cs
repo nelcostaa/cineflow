@@ -7,15 +7,22 @@ namespace Cineflow.Controllers;
 [Route("api/tmdb")]
 public class TmdbController : ControllerBase
 {
-    private readonly TmdbService _tmdb;
-    public TmdbController(TmdbService tmdb) => _tmdb = tmdb;
+    private readonly ITmdbService _tmdb;
 
-    [HttpGet("filmes/{tmdbId:int}")]
-    public async Task<IActionResult> GetDetalhes(int tmdbId)
+    public TmdbController(ITmdbService tmdb)
     {
-        var json = await _tmdb.GetMovieDetailsRawAsync(tmdbId, "pt-BR");
-        if (json is null) return StatusCode(502, "Falha ao consultar TMDB (movie details).");
+        _tmdb = tmdb;
+    }
 
-        return Content(json, "application/json");
+    [HttpGet("now-playing")]
+    public async Task<IActionResult> GetNowPlaying()
+    {
+        var result = await _tmdb.GetNowPlayingAsync();
+
+        if (result is null)
+            return StatusCode(502, "Erro ao consultar TMDB.");
+
+        return Ok(result);
     }
 }
+

@@ -6,7 +6,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Controllers (MVC)
 builder.Services.AddControllers();
-// builder.Services.AddScoped<TmdbService>();
+
+//Services
+builder.Services.AddScoped<ITmdbService, TmdbService>(); 
 
 // Swagger / OpenAPI
 builder.Services.AddEndpointsApiExplorer();

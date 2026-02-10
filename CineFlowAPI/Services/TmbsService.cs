@@ -4,10 +4,11 @@ using RestSharp;
 
 namespace Cineflow.Services;
 
-public class TmdbService
+public class TmdbService : ITmdbService
 {
     private readonly string _token;
     private readonly RestClient _client;
+
     private readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
@@ -21,7 +22,10 @@ public class TmdbService
         _client = new RestClient("https://api.themoviedb.org/3/");
     }
 
-    public async Task<TmdbNowPlayingResponseDto?> GetNowPlayingAsync(int page = 1, string language = "pt-BR")
+    public async Task<TmdbNowPlayingResponseDto?> GetNowPlayingAsync(
+        int page = 1,
+        string language = "pt-BR"
+    )
     {
         var request = new RestRequest("movie/now_playing");
         request.AddQueryParameter("language", language);
@@ -30,12 +34,19 @@ public class TmdbService
         request.AddHeader("Authorization", $"Bearer {_token}");
 
         var response = await _client.ExecuteAsync(request);
-        if (!response.IsSuccessful || response.Content is null) return null;
 
-        return JsonSerializer.Deserialize<TmdbNowPlayingResponseDto>(response.Content, _jsonOptions);
+        if (!response.IsSuccessful || response.Content is null)
+            return null;
+
+        return JsonSerializer.Deserialize<TmdbNowPlayingResponseDto>(
+            response.Content,
+            _jsonOptions
+        );
     }
 
-    public async Task<Dictionary<int, string>> GetGenresMapAsync(string language = "pt-BR")
+    public async Task<Dictionary<int, string>> GetGenresMapAsync(
+        string language = "pt-BR"
+    )
     {
         var request = new RestRequest("genre/movie/list");
         request.AddQueryParameter("language", language);
@@ -43,13 +54,22 @@ public class TmdbService
         request.AddHeader("Authorization", $"Bearer {_token}");
 
         var response = await _client.ExecuteAsync(request);
-        if (!response.IsSuccessful || response.Content is null) return new();
 
-        var dto = JsonSerializer.Deserialize<TmdbGenresResponseDto>(response.Content, _jsonOptions);
+        if (!response.IsSuccessful || response.Content is null)
+            return new();
+
+        var dto = JsonSerializer.Deserialize<TmdbGenresResponseDto>(
+            response.Content,
+            _jsonOptions
+        );
+
         return dto?.Genres.ToDictionary(g => g.Id, g => g.Name) ?? new();
     }
 
-    public async Task<string?> GetMovieDetailsRawAsync(int tmdbId, string language = "pt-BR")
+    public async Task<string?> GetMovieDetailsRawAsync(
+        int tmdbId,
+        string language = "pt-BR"
+    )
     {
         var request = new RestRequest($"movie/{tmdbId}");
         request.AddQueryParameter("language", language);
@@ -57,7 +77,9 @@ public class TmdbService
         request.AddHeader("Authorization", $"Bearer {_token}");
 
         var response = await _client.ExecuteAsync(request);
-        if (!response.IsSuccessful || response.Content is null) return null;
+
+        if (!response.IsSuccessful || response.Content is null)
+            return null;
 
         return response.Content;
     }

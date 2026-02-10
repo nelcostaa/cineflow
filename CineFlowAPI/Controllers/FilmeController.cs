@@ -1,3 +1,4 @@
+using System.Net.Mail;
 using Cineflow.Data;
 using Cineflow.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -12,50 +13,36 @@ public class FilmesController : ControllerBase
     private readonly AppDbContext _db;
     public FilmesController(AppDbContext db) => _db = db;
 
+    //GET /api/filmes
     [HttpGet]
-    public async Task<ActionResult<List<Filme>>> GetAll()
+    public async Task<IActionResult> GetAll()
     {
-        var filmes = await _db.Filmes.AsNoTracking().ToListAsync();
-        return Ok(filmes);
+        try
+        {
+            var filmes = await _filmeService.GetAllAsync();
+            return Ok(filmes);
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "Erro ao buscar filmes.");
+        }
     }
-
+    //GET /api/filmes/{id}
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<Filme>> GetById(int id)
+    public async Task<IActionResult> GetById(int id)
     {
-        var filme = await _db.Filmes.AsNoTracking().FirstOrDefaultAsync(f => f.Id == id);
-        if (filme is null) return NotFound();
+        var filme = await _filmeService.GetByIdAsync(id);
+
+        if (filme is null)
+            return NotFound(new { message = "Filme não encontrado." });
+
         return Ok(filme);
     }
 
-    [HttpPost]
-    public async Task<ActionResult<Filme>> Create([FromBody] Filme filme)
-    {
-        _db.Filmes.Add(filme);
-        await _db.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetById), new { id = filme.Id }, filme);
-    }
 
-    [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, [FromBody] Filme filme)
-    {
-        if (id != filme.Id) return BadRequest("Id da URL difere do body.");
-
-        var exists = await _db.Filmes.AnyAsync(f => f.Id == id);
-        if (!exists) return NotFound();
-
-        _db.Entry(filme).State = EntityState.Modified;
-        await _db.SaveChangesAsync();
-        return NoContent();
-    }
-
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
-    {
-        var filme = await _db.Filmes.FirstOrDefaultAsync(f => f.Id == id);
-        if (filme is null) return NotFound();
-
-        _db.Filmes.Remove(filme);
-        await _db.SaveChangesAsync();
-        return NoContent();
-    }
+    /*TODO:
+    POST /api/filmes
+    PUT /api/filmes/{id}
+    DELETE /api/filmes/{id}
+    */
 }
