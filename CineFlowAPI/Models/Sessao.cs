@@ -1,20 +1,17 @@
+namespace Cineflow.Models;
+
 public class Sessao
 {
     public int Id { get; set; }
+
     public int FilmeId { get; set; }
+    public Filme Filme { get; set; } = null!;
+
     public int SalaId { get; set; }
+    public Sala Sala { get; set; } = null!;
+
     public DateTime HorarioInicio { get; set; }
     public DateTime HorarioFim { get; set; }
 
-    // FilmeId -> FK;
-    // SalaId -> FK;
-
-    public Sessao(int id, int filmeId, int salaId, DateTime horarioInicio, DateTime horarioFim)
-    {
-        Id = id;
-        FilmeId = filmeId;
-        SalaId = salaId;
-        HorarioInicio = horarioInicio;
-        HorarioFim = horarioFim;
-    }
+    public List<Ingresso> Ingressos { get; set; } = new();
 }
