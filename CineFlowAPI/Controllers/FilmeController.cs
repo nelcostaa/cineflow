@@ -1,5 +1,6 @@
 using Cineflow.Data;
 using Cineflow.Models;
+using Cineflow.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,52 +11,97 @@ namespace Cineflow.Controllers;
 public class FilmesController : ControllerBase
 {
     private readonly AppDbContext _db;
-    public FilmesController(AppDbContext db) => _db = db;
+    private readonly IFilmeService _filmeService;
 
-    [HttpGet]
-    public async Task<ActionResult<List<Filme>>> GetAll()
+    public FilmesController(AppDbContext db, IFilmeService filmeService)
     {
-        var filmes = await _db.Filmes.AsNoTracking().ToListAsync();
-        return Ok(filmes);
+        _db = db;
+        _filmeService = filmeService;
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<Filme>> GetById(int id)
+    //GET /api/filmes
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
     {
-        var filme = await _db.Filmes.AsNoTracking().FirstOrDefaultAsync(f => f.Id == id);
-        if (filme is null) return NotFound();
+        try
+        {
+            var filmes = await _filmeService.GetAllAsync();
+            return Ok(filmes);
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "Erro ao buscar filmes.");
+        }
+    }
+
+    //GET /api/filmes/{id}
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var filme = await _filmeService.GetByIdAsync(id);
+
+        if (filme is null)
+            return NotFound(new { message = "Filme não encontrado." });
+
         return Ok(filme);
     }
 
+    //POST /api/filmes
     [HttpPost]
-    public async Task<ActionResult<Filme>> Create([FromBody] Filme filme)
+    public async Task<IActionResult> Create([FromBody] Filme filme)
     {
-        _db.Filmes.Add(filme);
-        await _db.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetById), new { id = filme.Id }, filme);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        try
+        {
+            var novoFilme = await _filmeService.CreateAsync(filme);
+            return CreatedAtAction(nameof(GetById), new { id = novoFilme.Id }, novoFilme);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Erro ao criar filme.", error = ex.Message });
+        }
     }
 
+    //PUT /api/filmes/{id}
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] Filme filme)
     {
-        if (id != filme.Id) return BadRequest("Id da URL difere do body.");
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-        var exists = await _db.Filmes.AnyAsync(f => f.Id == id);
-        if (!exists) return NotFound();
+        try
+        {
+            var sucesso = await _filmeService.UpdateAsync(id, filme);
 
-        _db.Entry(filme).State = EntityState.Modified;
-        await _db.SaveChangesAsync();
-        return NoContent();
+            if (!sucesso)
+                return NotFound(new { message = "Filme não encontrado." });
+
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Erro ao atualizar filme.", error = ex.Message });
+        }
     }
 
+    //DELETE /api/filmes/{id}
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var filme = await _db.Filmes.FirstOrDefaultAsync(f => f.Id == id);
-        if (filme is null) return NotFound();
+        try
+        {
+            var sucesso = await _filmeService.DeleteAsync(id);
 
-        _db.Filmes.Remove(filme);
-        await _db.SaveChangesAsync();
-        return NoContent();
+            if (!sucesso)
+                return NotFound(new { message = "Filme não encontrado." });
+
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Erro ao deletar filme.", error = ex.Message });
+        }
     }
 }

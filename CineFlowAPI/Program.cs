@@ -6,7 +6,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Controllers (MVC)
 builder.Services.AddControllers();
-// builder.Services.AddScoped<TmdbService>();
+
+
+//Services
+builder.Services.AddScoped<ITmdbService, TmdbService>();
+builder.Services.AddScoped<IFilmeService, FilmeService>();
+builder.Services.AddScoped<ISessaoService, SessaoService>();
+builder.Services.AddScoped<IIngressoService, IngressoService>();
+builder.Services.AddScoped<ISalaService, SalaService>();
 
 // Swagger / OpenAPI
 builder.Services.AddEndpointsApiExplorer();
