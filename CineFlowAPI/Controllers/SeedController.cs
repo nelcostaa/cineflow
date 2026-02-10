@@ -165,41 +165,31 @@ public class SeedController : ControllerBase
 
         try
         {
-            // 1. Criar salas
             var resultSalas = await CriarSalas();
+            int salasCount = 0;
             if (resultSalas is OkObjectResult okSalas)
             {
                 dynamic? dados = ((OkObjectResult)resultSalas).Value;
-                resultado = new
-                {
-                    filmes = resultado.filmes,
-                    salas = dados?.salas?.Count ?? 0,
-                    sessoes = resultado.sessoes,
-                    erros = resultado.erros
-                };
+                salasCount = dados?.salas?.Count ?? 0;
             }
-
-            // 2. Importar filmes (precisa chamar o controller de filmes)
-            // Nota: Isso precisa ser feito manualmente ou criar um método auxiliar
-
-            // 3. Criar sessões
             var resultSessoes = await CriarSessoes(diasSessoes);
+            int sessoesCount = 0;
             if (resultSessoes is OkObjectResult okSessoes)
             {
                 dynamic? dados = ((OkObjectResult)resultSessoes).Value;
-                resultado = new
-                {
-                    filmes = resultado.filmes,
-                    salas = resultado.salas,
-                    sessoes = dados?.sessoes?.Count() ?? 0,
-                    erros = resultado.erros
-                };
+                sessoesCount = dados?.sessoes?.Count() ?? 0;
             }
 
             return Ok(new
             {
                 message = "Seed parcial concluído. Execute POST /api/filmes/importar-now-playing para importar filmes.",
-                resultado
+                resultado = new
+                {
+                    filmes = resultado.filmes,
+                    salas = salasCount,
+                    sessoes = sessoesCount,
+                    erros = resultado.erros
+                }
             });
         }
         catch (Exception ex)

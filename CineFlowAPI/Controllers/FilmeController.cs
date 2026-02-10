@@ -123,7 +123,6 @@ public class FilmesController : ControllerBase
 
                 foreach (var tmdbFilme in response.Results)
                 {
-                    // Verifica se já existe
                     var existente = await _filmeService.GetByTmdbIdAsync(tmdbFilme.Id);
                     if (existente != null) continue;
 
@@ -138,7 +137,7 @@ public class FilmesController : ControllerBase
                         Titulo = tmdbFilme.Title ?? "Sem título",
                         TituloOriginal = tmdbFilme.OriginalTitle,
                         IdiomaOriginal = tmdbFilme.OriginalLanguage,
-                        DataLancamento = tmdbFilme.ReleaseDate,
+                        DataLancamento = DateTime.TryParse(tmdbFilme.ReleaseDate, out var data) ? data : null,
                         Sinopse = tmdbFilme.Overview,
                         Genero = string.Join(", ", generosNomes),
                         PosterPath = tmdbFilme.PosterPath,
