@@ -19,8 +19,20 @@ namespace Cineflow.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     IdTMDB = table.Column<int>(type: "int", nullable: false),
                     Titulo = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    DuracaoMinutos = table.Column<int>(type: "int", nullable: false),
-                    Genero = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: false)
+                    TituloOriginal = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IdiomaOriginal = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DataLancamento = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Sinopse = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DuracaoMinutos = table.Column<int>(type: "int", nullable: true),
+                    Genero = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: false),
+                    PosterPath = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    BackdropPath = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    VoteAverage = table.Column<decimal>(type: "decimal(4,3)", precision: 4, scale: 3, nullable: true),
+                    VoteCount = table.Column<int>(type: "int", nullable: true),
+                    Popularity = table.Column<decimal>(type: "decimal(10,3)", precision: 10, scale: 3, nullable: true),
+                    Adult = table.Column<bool>(type: "bit", nullable: false),
+                    Video = table.Column<bool>(type: "bit", nullable: false),
+                    AtualizadoEm = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -78,6 +90,7 @@ namespace Cineflow.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     SessaoId = table.Column<int>(type: "int", nullable: false),
                     LugarMarcado = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    Preco = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     DataCompra = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>

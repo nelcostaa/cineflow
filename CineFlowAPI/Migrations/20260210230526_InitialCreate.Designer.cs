@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Cineflow.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260210192724_InitialCreate")]
+    [Migration("20260210230526_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -33,7 +33,19 @@ namespace Cineflow.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("DuracaoMinutos")
+                    b.Property<bool>("Adult")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("AtualizadoEm")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("BackdropPath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DataLancamento")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DuracaoMinutos")
                         .HasColumnType("int");
 
                     b.Property<string>("Genero")
@@ -44,10 +56,36 @@ namespace Cineflow.Migrations
                     b.Property<int>("IdTMDB")
                         .HasColumnType("int");
 
+                    b.Property<string>("IdiomaOriginal")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("Popularity")
+                        .HasPrecision(10, 3)
+                        .HasColumnType("decimal(10,3)");
+
+                    b.Property<string>("PosterPath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Sinopse")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Titulo")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("TituloOriginal")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Video")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("VoteAverage")
+                        .HasPrecision(4, 3)
+                        .HasColumnType("decimal(4,3)");
+
+                    b.Property<int?>("VoteCount")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -72,6 +110,9 @@ namespace Cineflow.Migrations
                         .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
+
+                    b.Property<decimal>("Preco")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("SessaoId")
                         .HasColumnType("int");

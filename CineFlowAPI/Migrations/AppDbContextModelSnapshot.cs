@@ -108,6 +108,9 @@ namespace Cineflow.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
+                    b.Property<decimal>("Preco")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("SessaoId")
                         .HasColumnType("int");
 
