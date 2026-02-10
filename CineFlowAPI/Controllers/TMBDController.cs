@@ -7,8 +7,8 @@ namespace Cineflow.Controllers;
 [Route("api/tmdb")]
 public class TmdbController : ControllerBase
 {
-    private readonly TmdbService _tmdb;
-    public TmdbController(TmdbService tmdb) => _tmdb = tmdb;
+    private readonly ITmdbService _tmdb;
+    public TmdbController(ITmdbService tmdb) => _tmdb = tmdb;
 
     [HttpGet("filmes/{tmdbId:int}")]
     public async Task<IActionResult> GetDetalhes(int tmdbId)

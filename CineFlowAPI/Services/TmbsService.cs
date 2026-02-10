@@ -4,7 +4,7 @@ using RestSharp;
 
 namespace Cineflow.Services;
 
-public class TmdbService
+public class TmdbService : ITmdbService
 {
     private readonly string _token;
     private readonly RestClient _client;
