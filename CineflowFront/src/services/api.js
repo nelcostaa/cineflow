@@ -14,9 +14,9 @@ export const api = {
     return response.json();
   },
 
-  importarFilmes: async (quantidadePaginas = 2) => {
+  importarFilmes: async (quantidadePaginas = 1) => {
     const response = await fetch(
-      `${API_URL}/filmes/importar-now-playing?quantidadePaginas=${quantidadePaginas}`,
+      `${API_URL}/filmes/importar-em-cartaz?quantidadePaginas=${quantidadePaginas}`,
       {
         method: "POST",
       },
@@ -27,8 +27,14 @@ export const api = {
 
   // Sessões
   getSessoes: async (dias = 7) => {
-    const response = await fetch(`${API_URL}/sessoes/cartaz?dias=${dias}`);
+    const response = await fetch(`${API_URL}/sessoes/por-dia?dias=${dias}`);
     if (!response.ok) throw new Error("Erro ao buscar sessões");
+    return response.json();
+  },
+
+  getSessoesDia: async (data) => {
+    const response = await fetch(`${API_URL}/sessoes/dia/${data}`);
+    if (!response.ok) throw new Error("Erro ao buscar sessões do dia");
     return response.json();
   },
 
@@ -39,13 +45,41 @@ export const api = {
   },
 
   // Ingressos
+  getAssentosDisponiveis: async (sessaoId) => {
+    const response = await fetch(
+      `${API_URL}/sessoes/${sessaoId}/assentos-disponiveis`,
+    );
+    if (!response.ok) throw new Error("Erro ao buscar assentos disponíveis");
+    return response.json();
+  },
+
   comprarIngresso: async (sessaoId, lugarMarcado, preco) => {
     const response = await fetch(`${API_URL}/sessoes/${sessaoId}/ingressos`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ lugarMarcado, preco }),
+      body: JSON.stringify({ lugarMarcado, preco, tipoIngresso: "Inteira" }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Erro ao comprar ingresso");
+    }
+    return response.json();
+  },
+
+  comprarIngressoCompleto: async (
+    sessaoId,
+    lugarMarcado,
+    preco,
+    tipoIngresso,
+  ) => {
+    const response = await fetch(`${API_URL}/sessoes/${sessaoId}/ingressos`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ lugarMarcado, preco, tipoIngresso }),
     });
     if (!response.ok) {
       const error = await response.json();
@@ -68,11 +102,27 @@ export const api = {
   },
 
   // Seed
+  criarSalaUnica: async () => {
+    const response = await fetch(`${API_URL}/seed/sala-unica`, {
+      method: "POST",
+    });
+    if (!response.ok) throw new Error("Erro ao criar sala");
+    return response.json();
+  },
+
   criarSalas: async () => {
     const response = await fetch(`${API_URL}/seed/salas`, {
       method: "POST",
     });
     if (!response.ok) throw new Error("Erro ao criar salas");
+    return response.json();
+  },
+
+  criarSessaoUnica: async () => {
+    const response = await fetch(`${API_URL}/seed/sessao-unica`, {
+      method: "POST",
+    });
+    if (!response.ok) throw new Error("Erro ao criar sessão");
     return response.json();
   },
 
@@ -84,6 +134,14 @@ export const api = {
       },
     );
     if (!response.ok) throw new Error("Erro ao criar sessões");
+    return response.json();
+  },
+
+  criarIngressoUnico: async () => {
+    const response = await fetch(`${API_URL}/seed/ingresso-unico`, {
+      method: "POST",
+    });
+    if (!response.ok) throw new Error("Erro ao criar ingresso");
     return response.json();
   },
 

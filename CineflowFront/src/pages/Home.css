@@ -41,6 +41,15 @@
   background: #5568d3;
 }
 
+.btn-secondary {
+  background: #718096;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #4a5568;
+}
+
 .btn-success {
   background: #48bb78;
   color: white;

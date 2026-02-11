@@ -19,6 +19,19 @@ function Seed() {
     }
   };
 
+  const handleCriarSalaUnica = async () => {
+    try {
+      setLoading(true);
+      setResult({ type: "loading", message: "Criando sala..." });
+      const data = await api.criarSalaUnica();
+      setResult({ type: "success", message: data.message });
+    } catch (err) {
+      setResult({ type: "error", message: err.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCriarSalas = async () => {
     try {
       setLoading(true);
@@ -32,11 +45,37 @@ function Seed() {
     }
   };
 
+  const handleCriarSessaoUnica = async () => {
+    try {
+      setLoading(true);
+      setResult({ type: "loading", message: "Criando sessão..." });
+      const data = await api.criarSessaoUnica();
+      setResult({ type: "success", message: data.message });
+    } catch (err) {
+      setResult({ type: "error", message: err.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCriarSessoes = async () => {
     try {
       setLoading(true);
       setResult({ type: "loading", message: "Criando sessões..." });
       const data = await api.criarSessoes(7);
+      setResult({ type: "success", message: data.message });
+    } catch (err) {
+      setResult({ type: "error", message: err.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCriarIngressoUnico = async () => {
+    try {
+      setLoading(true);
+      setResult({ type: "loading", message: "Criando ingresso..." });
+      const data = await api.criarIngressoUnico();
       setResult({ type: "success", message: data.message });
     } catch (err) {
       setResult({ type: "error", message: err.message });
@@ -85,25 +124,55 @@ function Seed() {
 
       <div className="seed-card">
         <h3>2️⃣ Criar Salas</h3>
-        <p>Cria 6 salas com capacidades diferentes</p>
-        <button
-          className="btn btn-success"
-          onClick={handleCriarSalas}
-          disabled={loading}
-        >
-          Criar Salas
-        </button>
+        <p>Cria 6 salas com capacidades diferentes, ou uma sala individual</p>
+        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+          <button
+            className="btn btn-secondary"
+            onClick={handleCriarSalaUnica}
+            disabled={loading}
+          >
+            Criar 1 Sala
+          </button>
+          <button
+            className="btn btn-success"
+            onClick={handleCriarSalas}
+            disabled={loading}
+          >
+            Criar 6 Salas
+          </button>
+        </div>
       </div>
 
       <div className="seed-card">
         <h3>3️⃣ Criar Sessões</h3>
-        <p>Cria sessões para os próximos 7 dias</p>
+        <p>Cria sessões para os próximos dias, ou uma sessão individual</p>
+        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+          <button
+            className="btn btn-secondary"
+            onClick={handleCriarSessaoUnica}
+            disabled={loading}
+          >
+            Criar 1 Sessão
+          </button>
+          <button
+            className="btn btn-success"
+            onClick={handleCriarSessoes}
+            disabled={loading}
+          >
+            Criar Sessões (7 dias)
+          </button>
+        </div>
+      </div>
+
+      <div className="seed-card">
+        <h3>4️⃣ Criar Ingressos</h3>
+        <p>Cria um ingresso para uma sessão disponível</p>
         <button
-          className="btn btn-success"
-          onClick={handleCriarSessoes}
+          className="btn btn-secondary"
+          onClick={handleCriarIngressoUnico}
           disabled={loading}
         >
-          Criar Sessões
+          Criar 1 Ingresso
         </button>
       </div>
 

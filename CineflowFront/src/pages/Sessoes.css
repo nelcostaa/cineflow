@@ -1,45 +1,125 @@
-.sessoes-list {
+.sessoes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.sessoes-date-title {
+  color: #667eea;
+  margin: 0;
+  text-align: center;
+  flex: 1;
+}
+
+.btn-nav {
+  padding: 0.75rem 1.5rem;
+  min-width: 120px;
+}
+
+.btn-nav:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sessoes-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
   margin-top: 1.5rem;
 }
 
-.sessoes-date {
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-  color: #667eea;
+@media (max-width: 1200px) {
+  .sessoes-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .sessoes-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .sessoes-header {
+    flex-direction: column;
+  }
+
+  .btn-nav {
+    min-width: 100px;
+  }
+}
+
+@media (max-width: 600px) {
+  .sessoes-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .sessao-card {
   background: #f7fafc;
   border-radius: 10px;
   padding: 1.5rem;
-  margin-bottom: 1rem;
   border-left: 4px solid #667eea;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
-.sessao-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-  gap: 1rem;
+.sessao-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
 }
 
 .sessao-time {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #667eea;
+  text-align: center;
+}
+
+.sessao-card h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  min-height: 2.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sessao-badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.sessao-duracao {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.sessao-price {
   font-size: 1.5rem;
   font-weight: bold;
   color: #667eea;
+  text-align: center;
+  margin: 0.5rem 0;
 }
 
-.sessao-header h4 {
-  margin: 0.5rem 0 0 0;
-}
-
-.sessao-info {
+.sessao-occupancy {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
   gap: 0.5rem;
+}
+
+.occupancy-text {
+  font-size: 0.85rem;
+  color: #666;
+  text-align: center;
 }
 
 .badge {
@@ -63,4 +143,33 @@
 .badge-warning {
   background: #feebc8;
   color: #7c2d12;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #48bb78, #38a169);
+  transition: width 0.3s ease;
+}
+
+.progress-fill[style*="100%"] {
+  background: linear-gradient(90deg, #f56565, #e53e3e);
+}
+
+.btn-full {
+  width: 100%;
+  margin-top: auto;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #cbd5e0;
 }
