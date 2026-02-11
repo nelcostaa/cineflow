@@ -89,6 +89,8 @@ app.UseCors("default");
 app.UseSwagger();
 app.UseSwaggerUI();
 
+
+
 app.UseAuthorization();
 
 app.MapControllers();
