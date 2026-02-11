@@ -13,5 +13,8 @@ public class Sessao
     public DateTime HorarioInicio { get; set; }
     public DateTime HorarioFim { get; set; }
 
+    public decimal PrecoBase { get; set; }
+    public string Status { get; set; } = "Ativa";
+
     public List<Ingresso> Ingressos { get; set; } = new();
 }

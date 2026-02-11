@@ -12,8 +12,9 @@ public class Filme
     public DateTime? DataLancamento { get; set; }
     public string? Sinopse { get; set; }
 
-    public int? DuracaoMinutos { get; set; }   // runtime vem do /movie/{id}
-    public string? Genero { get; set; }        // dá pra manter como string simples
+    public int? DuracaoMinutos { get; set; }
+    public string? Genero { get; set; }
+    public string? ClassificacaoIndicativa { get; set; }
 
     public string? PosterPath { get; set; }
     public string? BackdropPath { get; set; }

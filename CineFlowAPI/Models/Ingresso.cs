@@ -10,4 +10,5 @@ public class Ingresso
     public string LugarMarcado { get; set; } = null!;
     public decimal Preco { get; set; }
     public DateTime DataCompra { get; set; }
+    public string StatusIngresso { get; set; } = "Ativo";
 }
