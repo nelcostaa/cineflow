@@ -17,6 +17,9 @@ function Navbar() {
             <Link to="/sessoes">Sessões</Link>
           </li>
           <li>
+            <Link to="/criar-sessao">Criar Sessão</Link>
+          </li>
+          <li>
             <Link to="/salas">Salas</Link>
           </li>
           <li>

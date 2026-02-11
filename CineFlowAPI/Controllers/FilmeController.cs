@@ -131,6 +131,10 @@ public class FilmesController : ControllerBase
                         .Select(id => generos[id])
                         .ToList() ?? new List<string>();
 
+                    var generoString = generosNomes.Any()
+                        ? string.Join(", ", generosNomes)
+                        : "Não classificado";
+
                     var filme = new Filme
                     {
                         IdTMDB = tmdbFilme.Id,
@@ -139,7 +143,7 @@ public class FilmesController : ControllerBase
                         IdiomaOriginal = tmdbFilme.OriginalLanguage,
                         DataLancamento = DateTime.TryParse(tmdbFilme.ReleaseDate, out var data) ? data : null,
                         Sinopse = tmdbFilme.Overview,
-                        Genero = string.Join(", ", generosNomes),
+                        Genero = generoString,
                         PosterPath = tmdbFilme.PosterPath,
                         BackdropPath = tmdbFilme.BackdropPath,
                         VoteAverage = tmdbFilme.VoteAverage,

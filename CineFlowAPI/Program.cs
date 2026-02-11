@@ -76,7 +76,13 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     logger.LogInformation("Aplicando migrações do banco de dados...");
     db.Database.Migrate();
-    logger.LogInformation("Banco de dados pronto!\n");
+    logger.LogInformation("Banco de dados pronto!");
+
+    var tmdbService = scope.ServiceProvider.GetRequiredService<ITmdbService>();
+    var seederLogger = scope.ServiceProvider.GetRequiredService<ILogger<DatabaseSeeder>>();
+    var seeder = new DatabaseSeeder(db, tmdbService, seederLogger);
+    await seeder.SeedAsync();
+    logger.LogInformation("");
 }
 
 app.UseMiddleware<RequestLoggingMiddleware>();

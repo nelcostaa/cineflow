@@ -22,6 +22,24 @@ public class SeedController : ControllerBase
         _sessaoService = sessaoService;
         _filmeService = filmeService;
     }
+    
+    private decimal CalcularPrecoBasePorSala(Sala sala)
+    {
+        var nomeSala = sala.Nome?.ToLower() ?? "";
+
+        if (nomeSala.Contains("premium")) return 45.00m;
+        if (nomeSala.Contains("vip")) return 50.00m;
+        if (nomeSala.Contains("imax")) return 55.00m;
+        if (nomeSala.Contains("3d")) return 40.00m;
+        if (nomeSala.Contains("mini")) return 20.00m;
+        if (nomeSala.Contains("standard")) return 30.00m;
+
+        // Preço padrão baseado na capacidade se não identificar o tipo
+        if (sala.CapacidadeTotal < 80) return 20.00m;
+        if (sala.CapacidadeTotal < 150) return 30.00m;
+        if (sala.CapacidadeTotal < 250) return 40.00m;
+        return 50.00m;
+    }
 
     //POST /api/seed/sala-unica
     [HttpPost("sala-unica")]
@@ -123,7 +141,7 @@ public class SeedController : ControllerBase
                 SalaId = sala.Id,
                 HorarioInicio = horarioInicio,
                 HorarioFim = horarioFim,
-                PrecoBase = 25.00m,
+                PrecoBase = CalcularPrecoBasePorSala(sala),
                 Status = "Ativa"
             };
 
@@ -169,26 +187,32 @@ public class SeedController : ControllerBase
 
             var sessoesCriadas = new List<Sessao>();
             var horarios = new[] { 14, 16, 18, 20, 22 };
+            var random = new Random();
 
             var dataInicial = DateTime.Today;
             var dataFinal = dataInicial.AddDays(diasFuturos);
 
             for (var data = dataInicial; data < dataFinal; data = data.AddDays(1))
             {
+                if (sessoesCriadas.Count >= 12) break;
+
                 var filmesSorteados = filmes.OrderBy(x => Guid.NewGuid()).Take(Math.Min(6, filmes.Count)).ToList();
 
                 for (int i = 0; i < filmesSorteados.Count && i < salas.Count; i++)
                 {
+                    if (sessoesCriadas.Count >= 12) break;
+
                     var filme = filmesSorteados[i];
                     var sala = salas[i];
 
                     foreach (var hora in horarios)
                     {
+                        if (sessoesCriadas.Count >= 12) break;
+
                         var horarioInicio = data.AddHours(hora);
                         var duracaoMinutos = filme.DuracaoMinutos ?? 120;
                         var horarioFim = horarioInicio.AddMinutes(duracaoMinutos + 30);
 
-                        // Verifica conflito
                         var temConflito = await _sessaoService.HasConflitoAsync(sala.Id, horarioInicio, horarioFim);
                         if (temConflito) continue;
 
@@ -198,26 +222,54 @@ public class SeedController : ControllerBase
                             SalaId = sala.Id,
                             HorarioInicio = horarioInicio,
                             HorarioFim = horarioFim,
-                            PrecoBase = 25.00m,
+                            PrecoBase = CalcularPrecoBasePorSala(sala),
                             Status = "Ativa"
                         };
 
-                        try
+                        var novaSessao = await _sessaoService.CreateAsync(sessao);
+                        sessoesCriadas.Add(novaSessao);
+
+                        var capacidade = sala.CapacidadeTotal;
+                        var percentualOcupacao = random.Next(20, 60);
+                        var quantidadeIngressos = (int)(capacidade * percentualOcupacao / 100.0);
+
+                        var assentosOcupados = new HashSet<string>();
+                        for (int j = 0; j < quantidadeIngressos; j++)
                         {
-                            var novaSessao = await _sessaoService.CreateAsync(sessao);
-                            sessoesCriadas.Add(novaSessao);
-                        }
-                        catch
-                        {
-                            // Ignora conflitos
+
+                            string assento;
+                            do
+                            {
+                                var fileira = (char)('A' + random.Next(0, 8));
+                                var numero = random.Next(1, 11);
+                                assento = $"{fileira}{numero}";
+                            } while (assentosOcupados.Contains(assento));
+
+                            assentosOcupados.Add(assento);
+
+                            var tipoIngresso = random.Next(0, 100) < 40 ? "Meia" : "Inteira";
+                            var preco = tipoIngresso == "Meia" ? sessao.PrecoBase / 2 : sessao.PrecoBase;
+
+                            var ingresso = new Ingresso
+                            {
+                                SessaoId = novaSessao.Id,
+                                LugarMarcado = assento,
+                                Preco = preco,
+                                DataCompra = DateTime.Now.AddDays(-random.Next(0, 3)),
+                                StatusIngresso = "Ativo"
+                            };
+
+                            _db.Ingressos.Add(ingresso);
                         }
                     }
                 }
             }
 
+            await _db.SaveChangesAsync();
+
             return Ok(new
             {
-                message = $"{sessoesCriadas.Count} sessões criadas com sucesso.",
+                message = $"{sessoesCriadas.Count} sessões criadas com sucesso (com ingressos parcialmente vendidos).",
                 sessoes = sessoesCriadas.Select(s => new
                 {
                     s.Id,
