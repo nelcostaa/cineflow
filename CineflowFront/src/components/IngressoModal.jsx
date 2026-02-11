@@ -28,17 +28,35 @@ function IngressoModal({ sessao, onClose, onSuccess }) {
   };
 
   const gerarAssentos = () => {
-    const fileiras = ["A", "B", "C", "D", "E", "F", "G", "H"];
-    const assentosPorFileira = 10;
+    const capacidade = assentosInfo?.capacidadeTotal || 80;
+
+    // Calcular layout ideal (aproximadamente quadrado)
+    const assentosPorFileira = Math.ceil(Math.sqrt(capacidade * 1.5)); // Largura maior que altura
+    const numFileiras = Math.ceil(capacidade / assentosPorFileira);
+
+    const fileiras = [];
+    for (let i = 0; i < numFileiras; i++) {
+      fileiras.push(String.fromCharCode(65 + i)); // A, B, C, D...
+    }
+
     const assentos = [];
+    let assentosCriados = 0;
 
     for (const fileira of fileiras) {
       for (let num = 1; num <= assentosPorFileira; num++) {
+        if (assentosCriados >= capacidade) break;
         assentos.push(`${fileira}${num}`);
+        assentosCriados++;
       }
+      if (assentosCriados >= capacidade) break;
     }
 
     return assentos;
+  };
+
+  const calcularColunasGrid = () => {
+    const capacidade = assentosInfo?.capacidadeTotal || 80;
+    return Math.ceil(Math.sqrt(capacidade * 1.5));
   };
 
   const handleAssentoClick = (assento) => {
@@ -197,7 +215,12 @@ function IngressoModal({ sessao, onClose, onSuccess }) {
                 </span>
               </div>
 
-              <div className="assentos-grid">
+              <div
+                className="assentos-grid"
+                style={{
+                  gridTemplateColumns: `repeat(${calcularColunasGrid()}, 1fr)`,
+                }}
+              >
                 {gerarAssentos().map((assento) => {
                   const ocupado =
                     assentosInfo?.assentosOcupados.includes(assento);

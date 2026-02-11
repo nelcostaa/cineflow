@@ -5,6 +5,7 @@ import Filmes from "./pages/Filmes";
 import Sessoes from "./pages/Sessoes";
 import Salas from "./pages/Salas";
 import Seed from "./pages/Seed";
+import CriarSessao from "./pages/CriarSessao";
 import "./App.css";
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/filmes" element={<Filmes />} />
             <Route path="/sessoes" element={<Sessoes />} />
+            <Route path="/criar-sessao" element={<CriarSessao />} />
             <Route path="/salas" element={<Salas />} />
             <Route path="/seed" element={<Seed />} />
           </Routes>

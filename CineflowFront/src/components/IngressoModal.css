@@ -132,9 +132,8 @@
 
 .assentos-grid {
   display: grid;
-  grid-template-columns: repeat(10, 1fr);
   gap: 8px;
-  max-width: 600px;
+  max-width: 700px;
   margin: 0 auto;
   padding: 1rem;
   background: #f7fafc;

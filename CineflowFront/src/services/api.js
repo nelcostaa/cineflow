@@ -101,6 +101,22 @@ export const api = {
     return response.json();
   },
 
+  // Criar Sessão
+  criarSessao: async (sessaoData) => {
+    const response = await fetch(`${API_URL}/sessoes`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(sessaoData),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Erro ao criar sessão");
+    }
+    return response.json();
+  },
+
   // Seed
   criarSalaUnica: async () => {
     const response = await fetch(`${API_URL}/seed/sala-unica`, {
