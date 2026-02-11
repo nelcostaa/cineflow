@@ -25,6 +25,7 @@ namespace Cineflow.Migrations
                     Sinopse = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DuracaoMinutos = table.Column<int>(type: "int", nullable: true),
                     Genero = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: false),
+                    ClassificacaoIndicativa = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PosterPath = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     BackdropPath = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     VoteAverage = table.Column<decimal>(type: "decimal(4,3)", precision: 4, scale: 3, nullable: true),
@@ -46,8 +47,7 @@ namespace Cineflow.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Nome = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: false),
-                    CapacidadeTotal = table.Column<int>(type: "int", nullable: false),
-                    LotacaoAtual = table.Column<int>(type: "int", nullable: false)
+                    CapacidadeTotal = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -63,7 +63,9 @@ namespace Cineflow.Migrations
                     FilmeId = table.Column<int>(type: "int", nullable: false),
                     SalaId = table.Column<int>(type: "int", nullable: false),
                     HorarioInicio = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    HorarioFim = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    HorarioFim = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    PrecoBase = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -91,7 +93,8 @@ namespace Cineflow.Migrations
                     SessaoId = table.Column<int>(type: "int", nullable: false),
                     LugarMarcado = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
                     Preco = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    DataCompra = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    DataCompra = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    StatusIngresso = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {

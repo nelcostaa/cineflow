@@ -39,6 +39,9 @@ namespace Cineflow.Migrations
                     b.Property<string>("BackdropPath")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ClassificacaoIndicativa")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("DataLancamento")
                         .HasColumnType("datetime2");
 
@@ -114,6 +117,10 @@ namespace Cineflow.Migrations
                     b.Property<int>("SessaoId")
                         .HasColumnType("int");
 
+                    b.Property<string>("StatusIngresso")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("SessaoId", "LugarMarcado")
@@ -131,9 +138,6 @@ namespace Cineflow.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("CapacidadeTotal")
-                        .HasColumnType("int");
-
-                    b.Property<int>("LotacaoAtual")
                         .HasColumnType("int");
 
                     b.Property<string>("Nome")
@@ -163,8 +167,15 @@ namespace Cineflow.Migrations
                     b.Property<DateTime>("HorarioInicio")
                         .HasColumnType("datetime2");
 
+                    b.Property<decimal>("PrecoBase")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("SalaId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
