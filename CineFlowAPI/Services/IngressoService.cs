@@ -1,4 +1,5 @@
 using Cineflow.Data;
+using Cineflow.Dtos;
 using Cineflow.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,14 +20,46 @@ public class IngressoService : IIngressoService
     public async Task<Ingresso?> GetByIdAsync(int id)
         => await _db.Ingressos.AsNoTracking().FirstOrDefaultAsync(i => i.Id == id);
 
-    public async Task<Ingresso> ComprarAsync(int sessaoId, string lugarMarcado, decimal preco)
+    public async Task<AssentosDisponiveisDto> GetAssentosDisponiveisAsync(int sessaoId)
     {
-        lugarMarcado = lugarMarcado.Trim();
+        var sessao = await _db.Sessoes
+            .Include(s => s.Sala)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == sessaoId);
+
+        if (sessao is null)
+            throw new KeyNotFoundException("Sessão não encontrada.");
+
+        var ingressosAtivos = await _db.Ingressos
+            .Where(i => i.SessaoId == sessaoId && i.StatusIngresso == "Ativo")
+            .AsNoTracking()
+            .ToListAsync();
+
+        var assentosOcupados = ingressosAtivos.Select(i => i.LugarMarcado).ToList();
+
+        return new AssentosDisponiveisDto
+        {
+            SessaoId = sessaoId,
+            CapacidadeTotal = sessao.Sala.CapacidadeTotal,
+            IngressosVendidos = ingressosAtivos.Count,
+            LugaresDisponiveis = sessao.Sala.CapacidadeTotal - ingressosAtivos.Count,
+            AssentosOcupados = assentosOcupados,
+            PrecoInteira = sessao.PrecoBase,
+            PrecoMeia = sessao.PrecoBase / 2
+        };
+    }
+
+    public async Task<Ingresso> ComprarAsync(int sessaoId, string lugarMarcado, decimal preco, string tipoIngresso = "Inteira")
+    {
+        lugarMarcado = lugarMarcado.Trim().ToUpper();
         if (string.IsNullOrWhiteSpace(lugarMarcado))
             throw new ArgumentException("LugarMarcado é obrigatório.");
 
         if (preco <= 0)
             throw new ArgumentException("O preço deve ser maior que zero.");
+
+        if (tipoIngresso != "Inteira" && tipoIngresso != "Meia")
+            throw new ArgumentException("Tipo de ingresso deve ser 'Inteira' ou 'Meia'.");
 
         var sessao = await _db.Sessoes
             .Include(s => s.Sala)
@@ -35,7 +68,18 @@ public class IngressoService : IIngressoService
         if (sessao is null)
             throw new KeyNotFoundException("Sessão não encontrada.");
 
-        var vendidos = await _db.Ingressos.CountAsync(i => i.SessaoId == sessaoId);
+        // Verificar se o assento já está ocupado
+        var assentoJaOcupado = await _db.Ingressos
+            .AnyAsync(i => i.SessaoId == sessaoId &&
+                          i.LugarMarcado == lugarMarcado &&
+                          i.StatusIngresso == "Ativo");
+
+        if (assentoJaOcupado)
+            throw new InvalidOperationException($"O assento {lugarMarcado} já está ocupado.");
+
+        var vendidos = await _db.Ingressos
+            .CountAsync(i => i.SessaoId == sessaoId && i.StatusIngresso == "Ativo");
+
         if (vendidos >= sessao.Sala.CapacidadeTotal)
             throw new InvalidOperationException("Sessão lotada.");
 
@@ -44,7 +88,8 @@ public class IngressoService : IIngressoService
             SessaoId = sessaoId,
             LugarMarcado = lugarMarcado,
             Preco = preco,
-            DataCompra = DateTime.UtcNow
+            DataCompra = DateTime.UtcNow,
+            StatusIngresso = "Ativo"
         };
 
         _db.Ingressos.Add(ingresso);
@@ -55,8 +100,7 @@ public class IngressoService : IIngressoService
         }
         catch (DbUpdateException ex)
         {
-            // Aqui normalmente pega violação do índice único (SessaoId, LugarMarcado)
-            throw new InvalidOperationException("Esse assento já foi vendido para essa sessão.", ex);
+            throw new InvalidOperationException($"Esse assento já foi vendido para essa sessão.", ex);
         }
 
         return ingresso;
@@ -67,7 +111,7 @@ public class IngressoService : IIngressoService
         var ingresso = await _db.Ingressos.FirstOrDefaultAsync(i => i.Id == ingressoId);
         if (ingresso is null) return false;
 
-        _db.Ingressos.Remove(ingresso);
+        ingresso.StatusIngresso = "Cancelado";
         await _db.SaveChangesAsync();
         return true;
     }

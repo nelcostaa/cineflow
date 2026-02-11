@@ -61,4 +61,30 @@ public class TmdbService : ITmdbService
 
         return response.Content;
     }
+
+    public async Task<int?> GetMovieRuntimeAsync(int tmdbId, string language = "pt-BR")
+{
+    var request = new RestRequest($"movie/{tmdbId}");
+    request.AddQueryParameter("language", language);
+    request.AddHeader("accept", "application/json");
+    request.AddHeader("Authorization", $"Bearer {_token}");
+
+    var response = await _client.ExecuteAsync(request);
+    if (!response.IsSuccessful || response.Content is null) return null;
+
+    try
+    {
+        var jsonDoc = JsonSerializer.Deserialize<JsonElement>(response.Content);
+        if (jsonDoc.TryGetProperty("runtime", out var runtimeElement))
+        {
+            return runtimeElement.GetInt32();
+        }
+    }
+    catch
+    {
+        return null;
+    }
+
+    return null;
+}
 }

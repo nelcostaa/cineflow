@@ -34,14 +34,11 @@ public class SalaService : ISalaService
         if (sala.CapacidadeTotal <= 0)
             throw new ArgumentException("A capacidade total deve ser maior que zero.");
 
-        // Verifica se já existe uma sala com o mesmo nome
         var salaExistente = await _db.Salas
             .FirstOrDefaultAsync(s => s.Nome == sala.Nome);
 
         if (salaExistente != null)
             throw new InvalidOperationException($"Já existe uma sala com o nome '{sala.Nome}'.");
-
-        sala.LotacaoAtual = 0;
 
         _db.Salas.Add(sala);
         await _db.SaveChangesAsync();
@@ -59,7 +56,6 @@ public class SalaService : ISalaService
         if (sala.CapacidadeTotal <= 0)
             throw new ArgumentException("A capacidade total deve ser maior que zero.");
 
-        // Verifica se está tentando alterar para um nome que já existe em outra sala
         if (salaExistente.Nome != sala.Nome)
         {
             var nomeJaExiste = await _db.Salas
@@ -71,7 +67,6 @@ public class SalaService : ISalaService
 
         salaExistente.Nome = sala.Nome;
         salaExistente.CapacidadeTotal = sala.CapacidadeTotal;
-        // Não atualizamos LotacaoAtual manualmente, pois deve ser calculado
 
         await _db.SaveChangesAsync();
         return true;

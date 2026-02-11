@@ -33,7 +33,6 @@ public class SessaoService : ISessaoService
         if (conflito)
             throw new InvalidOperationException("Conflito de horário: já existe sessão nessa sala no intervalo informado.");
 
-        // valida FK (opcional, mas bom)
         var filmeOk = await _db.Filmes.AnyAsync(f => f.Id == sessao.FilmeId);
         var salaOk = await _db.Salas.AnyAsync(s => s.Id == sessao.SalaId);
         if (!filmeOk) throw new KeyNotFoundException("Filme não encontrado.");
@@ -83,7 +82,6 @@ public class SessaoService : ISessaoService
         if (ignoreSessaoId.HasValue)
             query = query.Where(s => s.Id != ignoreSessaoId.Value);
 
-        // CONFLITO: novoInicio < existenteFim && novoFim > existenteInicio
         return await query.AnyAsync(s => inicio < s.HorarioFim && fim > s.HorarioInicio);
     }
 
