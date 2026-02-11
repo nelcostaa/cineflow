@@ -107,9 +107,9 @@ public class FilmesController : ControllerBase
         }
     }
 
-    //POST /api/filmes/importar-now-playing
-    [HttpPost("importar-now-playing")]
-    public async Task<IActionResult> ImportarNowPlaying([FromQuery] int quantidadePaginas = 1)
+    //POST /api/filmes/importar-em-cartaz
+    [HttpPost("importar-em-cartaz")]
+    public async Task<IActionResult> ImportarEmCartaz([FromQuery] int quantidadePaginas = 1)
     {
         try
         {
@@ -148,6 +148,12 @@ public class FilmesController : ControllerBase
                         Adult = tmdbFilme.Adult,
                         Video = tmdbFilme.Video
                     };
+
+                    var runtime = await _tmdbService.GetMovieRuntimeAsync(tmdbFilme.Id);
+                    if (runtime.HasValue)
+                    {
+                        filme.DuracaoMinutos = runtime.Value;
+                    }
 
                     var novoFilme = await _filmeService.CreateAsync(filme);
                     filmesImportados.Add(novoFilme);

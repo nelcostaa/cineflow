@@ -23,6 +23,33 @@ public class SeedController : ControllerBase
         _filmeService = filmeService;
     }
 
+    //POST /api/seed/sala-unica
+    [HttpPost("sala-unica")]
+    public async Task<IActionResult> CriarSalaUnica()
+    {
+        try
+        {
+            var contador = await _db.Salas.CountAsync() + 1;
+            var sala = new Sala
+            {
+                Nome = $"Sala {contador}",
+                CapacidadeTotal = 100
+            };
+
+            var novaSala = await _salaService.CreateAsync(sala);
+
+            return Ok(new
+            {
+                message = "Sala criada com sucesso.",
+                sala = novaSala
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Erro ao criar sala.", error = ex.Message });
+        }
+    }
+
     //POST /api/seed/salas
     [HttpPost("salas")]
     public async Task<IActionResult> CriarSalas()
@@ -50,7 +77,6 @@ public class SeedController : ControllerBase
                 }
                 catch (InvalidOperationException)
                 {
-                    // Sala já existe, ignora
                     var existente = await _db.Salas.FirstOrDefaultAsync(s => s.Nome == sala.Nome);
                     if (existente != null)
                         salasCriadas.Add(existente);
@@ -66,6 +92,63 @@ public class SeedController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, new { message = "Erro ao criar salas.", error = ex.Message });
+        }
+    }
+
+    //POST /api/seed/sessao-unica
+    [HttpPost("sessao-unica")]
+    public async Task<IActionResult> CriarSessaoUnica()
+    {
+        try
+        {
+            var filmes = await _filmeService.GetAllAsync();
+            var salas = await _salaService.GetAllAsync();
+
+            if (filmes.Count == 0)
+                return BadRequest(new { message = "Nenhum filme cadastrado. Importe filmes primeiro." });
+
+            if (salas.Count == 0)
+                return BadRequest(new { message = "Nenhuma sala cadastrada. Crie uma sala primeiro." });
+
+            var filme = filmes.OrderBy(x => Guid.NewGuid()).First();
+            var sala = salas.OrderBy(x => Guid.NewGuid()).First();
+            var horario = 14 + (new Random().Next(0, 5) * 2);
+            var horarioInicio = DateTime.Today.AddDays(1).AddHours(horario);
+            var duracaoMinutos = filme.DuracaoMinutos ?? 120;
+            var horarioFim = horarioInicio.AddMinutes(duracaoMinutos + 30);
+
+            var sessao = new Sessao
+            {
+                FilmeId = filme.Id,
+                SalaId = sala.Id,
+                HorarioInicio = horarioInicio,
+                HorarioFim = horarioFim,
+                PrecoBase = 25.00m,
+                Status = "Ativa"
+            };
+
+            var novaSessao = await _sessaoService.CreateAsync(sessao);
+
+            return Ok(new
+            {
+                message = "Sessão criada com sucesso.",
+                sessao = new
+                {
+                    novaSessao.Id,
+                    novaSessao.FilmeId,
+                    Filme = filme.Titulo,
+                    novaSessao.SalaId,
+                    Sala = sala.Nome,
+                    novaSessao.HorarioInicio,
+                    novaSessao.HorarioFim,
+                    novaSessao.PrecoBase,
+                    novaSessao.Status
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Erro ao criar sessão.", error = ex.Message });
         }
     }
 
@@ -85,7 +168,7 @@ public class SeedController : ControllerBase
                 return BadRequest(new { message = "Nenhuma sala cadastrada. Crie salas primeiro usando POST /api/seed/salas" });
 
             var sessoesCriadas = new List<Sessao>();
-            var horarios = new[] { 14, 16, 18, 20, 22 }; // Horários das sessões
+            var horarios = new[] { 14, 16, 18, 20, 22 };
 
             var dataInicial = DateTime.Today;
             var dataFinal = dataInicial.AddDays(diasFuturos);
@@ -102,8 +185,8 @@ public class SeedController : ControllerBase
                     foreach (var hora in horarios)
                     {
                         var horarioInicio = data.AddHours(hora);
-                        var duracaoMinutos = filme.DuracaoMinutos ?? 120; // Duração padrão 2h
-                        var horarioFim = horarioInicio.AddMinutes(duracaoMinutos + 30); // +30min para limpeza
+                        var duracaoMinutos = filme.DuracaoMinutos ?? 120;
+                        var horarioFim = horarioInicio.AddMinutes(duracaoMinutos + 30);
 
                         // Verifica conflito
                         var temConflito = await _sessaoService.HasConflitoAsync(sala.Id, horarioInicio, horarioFim);
@@ -114,7 +197,9 @@ public class SeedController : ControllerBase
                             FilmeId = filme.Id,
                             SalaId = sala.Id,
                             HorarioInicio = horarioInicio,
-                            HorarioFim = horarioFim
+                            HorarioFim = horarioFim,
+                            PrecoBase = 25.00m,
+                            Status = "Ativa"
                         };
 
                         try
@@ -195,6 +280,66 @@ public class SeedController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, new { message = "Erro ao executar seed completo.", error = ex.Message });
+        }
+    }
+
+    //POST /api/seed/ingresso-unico
+    [HttpPost("ingresso-unico")]
+    public async Task<IActionResult> CriarIngressoUnico()
+    {
+        try
+        {
+            var sessoes = await _db.Sessoes
+                .Include(s => s.Filme)
+                .Include(s => s.Sala)
+                .Where(s => s.Status == "Ativa" && s.HorarioInicio > DateTime.Now)
+                .ToListAsync();
+
+            if (sessoes.Count == 0)
+                return BadRequest(new { message = "Nenhuma sessão ativa disponível. Crie uma sessão primeiro." });
+
+            var sessao = sessoes.OrderBy(x => Guid.NewGuid()).First();
+
+            var ingressosExistentes = await _db.Ingressos
+                .Where(i => i.SessaoId == sessao.Id && i.StatusIngresso == "Ativo")
+                .CountAsync();
+
+            if (ingressosExistentes >= sessao.Sala!.CapacidadeTotal)
+                return BadRequest(new { message = "A sessão selecionada está lotada. Tente novamente." });
+
+            var lugarMarcado = $"A{ingressosExistentes + 1}";
+            var ingresso = new Ingresso
+            {
+                SessaoId = sessao.Id,
+                LugarMarcado = lugarMarcado,
+                Preco = sessao.PrecoBase,
+                DataCompra = DateTime.Now,
+                StatusIngresso = "Ativo"
+            };
+
+            _db.Ingressos.Add(ingresso);
+            await _db.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Ingresso criado com sucesso.",
+                ingresso = new
+                {
+                    ingresso.Id,
+                    ingresso.SessaoId,
+                    Filme = sessao.Filme?.Titulo,
+                    Sala = sessao.Sala?.Nome,
+                    Horario = sessao.HorarioInicio,
+                    ingresso.LugarMarcado,
+                    ingresso.Preco,
+                    ingresso.DataCompra,
+                    ingresso.StatusIngresso
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Erro ao criar ingresso.", error = ex.Message });
         }
     }
 

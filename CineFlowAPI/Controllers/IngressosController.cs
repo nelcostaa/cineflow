@@ -1,4 +1,5 @@
 using Cineflow.Data;
+using Cineflow.Dtos;
 using Cineflow.Models;
 using Cineflow.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -34,6 +35,25 @@ public class IngressosController : ControllerBase
         }
     }
 
+    //GET /api/sessoes/{sessaoId}/assentos-disponiveis
+    [HttpGet("sessoes/{sessaoId:int}/assentos-disponiveis")]
+    public async Task<IActionResult> GetAssentosDisponiveis(int sessaoId)
+    {
+        try
+        {
+            var assentos = await _ingressoService.GetAssentosDisponiveisAsync(sessaoId);
+            return Ok(assentos);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Erro ao buscar assentos disponíveis.", error = ex.Message });
+        }
+    }
+
     //POST /api/sessoes/{sessaoId}/ingressos (compra)
     [HttpPost("sessoes/{sessaoId:int}/ingressos")]
     public async Task<IActionResult> Comprar(int sessaoId, [FromBody] ComprarIngressoDto dto)
@@ -43,7 +63,7 @@ public class IngressosController : ControllerBase
 
         try
         {
-            var ingresso = await _ingressoService.ComprarAsync(sessaoId, dto.LugarMarcado, dto.Preco);
+            var ingresso = await _ingressoService.ComprarAsync(sessaoId, dto.LugarMarcado, dto.Preco, dto.TipoIngresso);
             return CreatedAtAction(nameof(GetById), new { id = ingresso.Id }, ingresso);
         }
         catch (KeyNotFoundException ex)
@@ -101,10 +121,4 @@ public class IngressosController : ControllerBase
             return StatusCode(500, new { message = "Erro ao cancelar ingresso.", error = ex.Message });
         }
     }
-}
-
-public class ComprarIngressoDto
-{
-    public string LugarMarcado { get; set; } = null!;
-    public decimal Preco { get; set; }
 }
