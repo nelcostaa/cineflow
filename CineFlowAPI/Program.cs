@@ -1,11 +1,24 @@
 using Microsoft.EntityFrameworkCore;
 using Cineflow.Data;
 using Cineflow.Services;
+using Cineflow.Middleware;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Controllers (MVC)
-builder.Services.AddControllers();
+// Configuração de Logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+builder.Logging.SetMinimumLevel(LogLevel.Information);
+
+// Controllers (MVC) com configuração de JSON para evitar ciclos
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
 
 
 //Services
@@ -31,30 +44,47 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-);
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+
+    if (builder.Environment.IsDevelopment())
+    {
+        options.EnableSensitiveDataLogging();
+        options.EnableDetailedErrors();
+    }
+});
 
 
 
 
 var app = builder.Build();
 
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+logger.LogInformation("\n" +
+    "═══════════════════════════════════════════════════════════════\n" +
+    "   🎬 CineFlow API - Sistema de Gestão de Cinema\n" +
+    "═══════════════════════════════════════════════════════════════\n" +
+    "   🚀 Servidor iniciado\n" +
+    "   📍 Ambiente: {Environment}\n" +
+    "   🔗 URLs: {Urls}\n" +
+    "═══════════════════════════════════════════════════════════════\n",
+    app.Environment.EnvironmentName,
+    string.Join(", ", app.Urls));
+
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    logger.LogInformation("Aplicando migrações do banco de dados...");
     db.Database.Migrate();
+    logger.LogInformation("Banco de dados pronto!\n");
 }
 
+app.UseMiddleware<RequestLoggingMiddleware>();
 
 app.UseHttpsRedirection();
 
 app.UseCors("default");
 
-// if (app.Environment.IsDevelopment())
-// {
-//     app.UseSwagger();
-//     app.UseSwaggerUI();
-// }
 
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -62,7 +92,5 @@ app.UseSwaggerUI();
 app.UseAuthorization();
 
 app.MapControllers();
-
-app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.Run();
