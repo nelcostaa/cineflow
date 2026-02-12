@@ -1,4 +1,4 @@
-const API_URL = "http://localhost/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost/api";
 
 export const api = {
   // Filmes
