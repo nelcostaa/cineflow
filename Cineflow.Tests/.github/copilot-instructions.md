@@ -126,14 +126,15 @@ Sessao (1) ──[Cascade]──> (N) Ingresso
 **Docker Compose services** (3 containers):
 - `db` - SQL Server 2022 (port 1433)
 - `api` - CineFlowAPI (port 8080)
-- `nginx` - Reverse proxy + React SPA serving (port 80)
-  - Serves React build from `CineflowFront/dist/` (volume mount)
-  - Proxies `/api/*` to `api:8080`
-  - Proxies `/swagger` to `api:8080`
+- `nginx` - Multi-stage build: Node builds React → Nginx serves + proxies API (port 80)
+  - **Build context:** Project root (`.`)
+  - **Dockerfile:** `CineflowFront/Dockerfile`
+  - Stage 1: Builds React with Vite (node:20-alpine)
+  - Stage 2: Serves React build + proxies `/api/*` and `/swagger` to `api:8080` (nginx:alpine)
   - Uses `try_files` for React Router deep linking
 - Volume: `mssql_data` for database persistence
 
-**Build requirement:** Run `cd CineflowFront && npm ci && npm run build` before `docker-compose up`
+**Deployment:** Single command builds everything automatically - no manual steps required
 
 ---
 
@@ -287,21 +288,24 @@ Git operations, reading files with known paths, running known commands, `dotnet 
 
 **Commands:**
 ```bash
-docker-compose up -d          # Start full stack
+docker-compose up -d --build  # Build images and start full stack (recommended)
+docker-compose up -d          # Start with existing images (faster if no changes)
 docker-compose down           # Stop stack
 docker-compose down -v        # Stop + delete volumes (destroys DB data)
-docker-compose logs api       # View API logs
-docker-compose logs db        # View SQL Server logs
+docker-compose logs -f nginx  # View nginx logs (React build + server)
+docker-compose logs -f api    # View API logs
+docker-compose logs -f db     # View SQL Server logs
 docker-compose ps             # Check service status
+docker-compose build nginx    # Rebuild only nginx/React (if code changed)
 ```
 
-**Networking:** Services reference each other by name (`db`, `api`). Connection string inside Docker uses `Server=db,1433`. Nginx serves React build via volume mount, no frontend container.
+**Networking:** Services reference each other by name (`db`, `api`). Connection string inside Docker uses `Server=db,1433`. Nginx container builds React automatically via multi-stage Dockerfile.
 
-**Build before running:**
-```bash
-cd CineflowFront && npm ci && npm run build  # Generate dist/
-cd .. && docker-compose up -d                 # Start stack
-```
+**Architecture notes:**
+- No separate frontend container (consolidated into nginx)
+- React build happens inside Docker (node stage) during `docker-compose up --build`
+- Nginx stage copies built assets and serves them alongside API proxy
+- Single Dockerfile handles both build and serve phases
 
 ---
 
