@@ -26,24 +26,15 @@ services:
     depends_on:
       - db
 
-  frontend:
-    build:
-      context: ./CineflowFront
-      dockerfile: Dockerfile
-    container_name: cineflow-frontend
-    depends_on:
-      - api
-
   nginx:
-    image: nginx:alpine
+    build:
+      context: .
+      dockerfile: CineflowFront/Dockerfile
     container_name: cineflow-nginx
     ports:
       - "80:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - api
-      - frontend
 
 volumes:
   mssql_data:

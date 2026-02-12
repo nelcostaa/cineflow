@@ -9,3 +9,8 @@ CineFlowAPI/bin/Debug/
 .idea/cineflow.iml
 .idea/modules.xml
 /.idea
+
+# Frontend build output and dependencies
+CineflowFront/dist/
+CineflowFront/node_modules/
+CineflowFront/.env.local
